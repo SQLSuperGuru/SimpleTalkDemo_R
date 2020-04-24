@@ -69,23 +69,19 @@ findAssocs(TextDoc_dtm, terms = c("good","work","health"), corlimit = 0.25)
 findAssocs(TextDoc_dtm, terms = findFreqTerms(TextDoc_dtm, lowfreq = 50), corlimit = 0.25)
 # possibly creat a heat map ?
 
-# run nrc sentiment analysis to return data frame with each row classified as one of the following
-# emotions, rather than a score : 
-# anger, anticipation, disgust, fear, joy, sadness, surprise, trust 
-# and if the sentiment is positive or negative
-d<-get_nrc_sentiment(text)
 
 # head(d,10) - to see top 10 lines of the get_nrc_sentiment dataframe
 head (d,10)
 
 # regular sentiment score using get_sentiment() function and method of your choice
-# please note that different methods may have different scales
+# please note that different methods have different scales
 syuzhet_vector <- get_sentiment(text, method="syuzhet")
 
-# see the first row of the vector
-head(syuzhet_vector)
+# see the first 10 elements of the vector
+head(syuzhet_vector,10)
 
-# see summary statisics of the vector
+# see median value of vector elements
+# median(syuzhet_vector)
 summary(syuzhet_vector)
 
 # bing
@@ -93,7 +89,7 @@ bing_vector <- get_sentiment(text, method="bing")
 head(bing_vector)
 summary(bing_vector)
 
-#affin
+#afinn
 afinn_vector <- get_sentiment(text, method="afinn")
 head(afinn_vector)
 summary(afinn_vector)
@@ -101,18 +97,23 @@ summary(afinn_vector)
 #nrc
 nrc_vector <- get_sentiment(text, method="nrc")
 head(nrc_vector)
-summary(nrc_vector)
+median(nrc_vector)
 
 #compare the first row of each vector using sign function
 rbind(
   sign(head(syuzhet_vector)),
   sign(head(bing_vector)),
-  sign(head(afinn_vector)),
-  sign(head(nrc_vector))
+  sign(head(afinn_vector))
 )
 
 # head(d,10) - just to see top 10 lines
 head (d,10)
+
+# run nrc sentiment analysis to return data frame with each row classified as one of the following
+# emotions, rather than a score : 
+# anger, anticipation, disgust, fear, joy, sadness, surprise, trust 
+# and if the sentiment is positive or negative
+d<-get_nrc_sentiment(text)
 
 #transpose
 td<-data.frame(t(d))
