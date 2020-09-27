@@ -1,3 +1,4 @@
+-- Use this script for Oracle Database version 12.2 and higher as it allows of object name length greater than 30
 -- DROP TABLE DEMO_SENTIMENTANALYSIS_TEAMHEALTH;
 
 -- Create a Table to store data
