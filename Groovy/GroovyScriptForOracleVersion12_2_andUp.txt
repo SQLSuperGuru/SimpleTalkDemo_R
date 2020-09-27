@@ -1,3 +1,5 @@
+//use this Grrovy script if your Oracle Database version is 12.2 or higher
+
 import groovy.json.JsonSlurper
 import groovy.json.JsonOutput
 import groovy.sql.Sql
