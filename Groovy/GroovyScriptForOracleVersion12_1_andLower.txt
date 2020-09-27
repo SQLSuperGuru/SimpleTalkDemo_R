@@ -1,0 +1,93 @@
+//use this Grrovy script if your Oracle Database version is 12.1 or lower
+
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+import groovy.sql.Sql
+import java.text.SimpleDateFormat
+
+def date = new Date()
+def sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss")
+current = sdf.format(date)
+
+// Get API URL from Topology
+baseUrl = '<?=odiRef.getInfo("DEST_JAVA_URL")?>'
+// Get API Key from Topology
+apiKey = '<?=odiRef.getInfo("DEST_PASS")?>'
+
+log = new File("/tmp/sentiment_analysis.log")
+log.write("")
+
+// Create API Call
+def callCognitiveServices(endpoint, body, keyWords){
+    URL url = new URL(endpoint)
+    URLConnection urlConnection = url.openConnection()
+    urlConnection.setRequestProperty("Accept", "application/json")
+    urlConnection.setRequestProperty("Content-Type", "application/json")
+    urlConnection.setRequestProperty("Ocp-Apim-Subscription-Key",apiKey)
+    urlConnection.setRequestMethod("POST")
+    urlConnection.doOutput = true
+
+    OutputStream os = urlConnection.getOutputStream()
+                os.write(bodyJson.getBytes())
+                os.flush()
+    def result
+    if (urlConnection.getResponseCode().toString().substring(0, 1) == "2") {
+        BufferedReader br = new BufferedReader(new InputStreamReader(
+                (urlConnection.getInputStream())))
+
+        returnJson = new JsonSlurper().parse(br)
+
+        try{
+            result = returnJson["documents"][keyWords][0]
+           } catch (all){
+            println all
+           }
+        
+    } else {
+      log << endpoint + ' '
+      log << urlConnection.getResponseCode().toString() + ' '
+      log << urlConnection.getResponseMessage().toString() + System.getProperty("line.separator")
+    }
+    return result
+}
+
+sentimentUrl = baseUrl + "/sentiment"
+keyPhrasesUrl = baseUrl + "/keyPhrases"
+
+// Open Oracle Database connection
+sql = Sql.newInstance(odiRef.getJDBCConnection("SRC"))
+
+// Select statement for raw data that needs to be processed by the API
+selectStmt = """SELECT ID, RESPONSE FROM MHATRES.DEMO_SENTIMENTANALYSIS_TH
+                WHERE SENTIMENT_SCORE IS NULL"""
+
+// loop to call the API for each row returned by the SELECT statement
+sql.eachRow(selectStmt){row ->
+    text_id = row['ID']
+    text = row['RESPONSE']
+
+    bodyJson = JsonOutput.toJson(
+                [
+                    documents:
+                        [[
+                            language      : "en",
+                            id            : 0,
+                            text          : text
+                        ]]
+                    ])
+    
+    score =  callCognitiveServices(sentimentUrl, bodyJson, "score")
+    key =   callCognitiveServices(keyPhrasesUrl, bodyJson, "keyPhrases")
+    if (key){
+        key = key.join(",")
+    } else {
+        key = ''
+    }
+    // update row in the table with API Response (Sentiment Score and Key Phrases), based on ID
+    updateStmt = "UPDATE MHATRES.DEMO_SENTIMENTANALYSIS_TH SET SENTIMENT_SCORE = :SCORE, KEY_PHRASES = :KEY, DW_CREATION_DATE = TO_DATE(:CURRENT, 'MM/DD/YYYY HH24:MI:SS'), DW_LAST_UPDATED_DATE = TO_DATE(:CURRENT, 'MM/DD/YYYY HH24:MI:SS') WHERE ID = :ID"
+    sql.executeUpdate(updateStmt,[SCORE:score, KEY:key, CURRENT:current, ID:text_id])
+}
+// Execute a Data commit and close database connection
+sql.execute('COMMIT')
+sql.close()
+
