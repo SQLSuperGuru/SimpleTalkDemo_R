@@ -1,4 +1,3 @@
--- Use this script for Oracle Database version 12.1 and lower as it allows of object name length greater than 30
 -- Please note IDENTITY field feature was introduced in Oracle Version 12.1 and will not work in lower versions. Please use sequences instead for older versions 
 
 -- DROP TABLE DEMO_SENTIMENTANALYSIS_TH;
