@@ -58,7 +58,7 @@ keyPhrasesUrl = baseUrl + "/keyPhrases"
 sql = Sql.newInstance(odiRef.getJDBCConnection("SRC"))
 
 // Select statement for raw data that needs to be processed by the API
-selectStmt = """SELECT ID, RESPONSE FROM MHATRES.DEMO_SENTIMENTANALYSIS_TH
+selectStmt = """SELECT ID, RESPONSE FROM MOVIEDEMO.DEMO_SENTIMENTANALYSIS_TH
                 WHERE SENTIMENT_SCORE IS NULL"""
 
 // loop to call the API for each row returned by the SELECT statement
@@ -84,7 +84,7 @@ sql.eachRow(selectStmt){row ->
         key = ''
     }
     // update row in the table with API Response (Sentiment Score and Key Phrases), based on ID
-    updateStmt = "UPDATE MHATRES.DEMO_SENTIMENTANALYSIS_TH SET SENTIMENT_SCORE = :SCORE, KEY_PHRASES = :KEY, DW_CREATION_DATE = TO_DATE(:CURRENT, 'MM/DD/YYYY HH24:MI:SS'), DW_LAST_UPDATED_DATE = TO_DATE(:CURRENT, 'MM/DD/YYYY HH24:MI:SS') WHERE ID = :ID"
+    updateStmt = "UPDATE MOVIEDEMO.DEMO_SENTIMENTANALYSIS_TH SET SENTIMENT_SCORE = :SCORE, KEY_PHRASES = :KEY, DW_CREATION_DATE = TO_DATE(:CURRENT, 'MM/DD/YYYY HH24:MI:SS'), DW_LAST_UPDATED_DATE = TO_DATE(:CURRENT, 'MM/DD/YYYY HH24:MI:SS') WHERE ID = :ID"
     sql.executeUpdate(updateStmt,[SCORE:score, KEY:key, CURRENT:current, ID:text_id])
 }
 // Execute a Data commit and close database connection
