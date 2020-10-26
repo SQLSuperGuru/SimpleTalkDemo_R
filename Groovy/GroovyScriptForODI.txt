@@ -1,4 +1,4 @@
-//use this Grrovy script if your Oracle Database version is 12.1 or lower
+//use this Grrovy script in your ODI procedure task
 
 import groovy.json.JsonSlurper
 import groovy.json.JsonOutput
